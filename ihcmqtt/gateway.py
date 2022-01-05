@@ -40,14 +40,16 @@ class IhcMqttGateway:
     def __init__(self):
         self.controller = None
         self.broker = None
-        self.topic_map = dict()
         self.logger = logging.getLogger("ihcmqtt.gateway")
         self.mapfile = None
+        self.topic_prefix = "house"
 
     def connect_controller(self, url, username, password):
         self.logger.info("Connecting to IHC system at {} with user {}".format(url, username))
         ctl = IHCController(url, username, password)
-        ctl.authenticate()
+        if not ctl.authenticate():
+            self.logger.error("Cannot authenticate to IHC system at {} with user {}".format(url, username))
+            sys.exit(4)
         self.set_controller(ctl)
 
     def set_controller(self, ctl):
@@ -67,7 +69,7 @@ class IhcMqttGateway:
                 for dout in product.findall(".//dataline_output"):
                     name = whitelist_name(dout.attrib["name"])
                     # set up IHC->MQTT
-                    base_topic_name = "house/{}/{}/{}/state".format(pparent_name, parent_name, name)
+                    base_topic_name = "{}/{}/{}/{}/state".format(self.topic_prefix, pparent_name, parent_name, name)
                     resid = dout.attrib["id"]
                     intid = int(resid[1:], base=16)
                     self.logger.debug("dataline output resource id {} ({}) publishes to {}".format(resid, intid, base_topic_name))
@@ -76,7 +78,7 @@ class IhcMqttGateway:
                     self.controller.add_notify_event(intid, self.on_ihc_change_handler(base_topic_name), True)
                     # set up MQTT->IHC
                     if self.broker:
-                        base_topic_name = "house/{}/{}/{}/command".format(pparent_name, parent_name, name)
+                        base_topic_name = "{}/{}/{}/{}/command".format(self.topic_prefix, pparent_name, parent_name, name)
                         self.broker.subscribe(base_topic_name)
                         self.logger.debug("dataline output resource id {} ({}) subscribes to {}".format(resid, intid, base_topic_name))
                         if mapfile:
@@ -85,7 +87,7 @@ class IhcMqttGateway:
                 for din in product.findall(".//dataline_input"):
                     name = whitelist_name(din.attrib["name"])
                     # set up IHC->MQTT
-                    base_topic_name = "house/{}/{}/{}/state".format(pparent_name, parent_name, name)
+                    base_topic_name = "{}/{}/{}/{}/state".format(self.topic_prefix, pparent_name, parent_name, name)
                     resid = din.attrib["id"]
                     intid = int(resid[1:], base=16)
                     self.logger.debug("dataline input resource id {} ({}) publishes to {}".format(resid, intid, base_topic_name))
@@ -194,6 +196,8 @@ def main(argv):
     gw = IhcMqttGateway()
     if "mapfile" in config:
         gw.mapfile = config["mapfile"]
+    if "topic_prefix" in config:
+        gw.topic_prefix = config["topic_prefix"]
     gw.connect_broker(config["broker_host"], int(config["broker_port"]))
     gw.connect_controller(config["controller_url"], config["controller_username"], config["controller_password"])
     signal.signal(signal.SIGINT, lambda sig, frame: gw.close())

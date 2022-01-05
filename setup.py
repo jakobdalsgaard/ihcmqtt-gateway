@@ -24,8 +24,8 @@ setup(
         "Programming Language :: Python :: 3.7",
     ],
     packages=["ihcmqtt"],
-    include_package_data=True,
-    install_requires=["libxml2-python3", "paho-mqtt", "ihcsdk"],
+    include_package_data=False,
+    install_requires=["paho-mqtt", "ihcsdk"],
     entry_points={
         "console_scripts": [
             "ihcqmtt-gateway=ihcmqtt.gateway:main",
