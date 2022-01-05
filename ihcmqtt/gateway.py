@@ -164,12 +164,12 @@ python3 -m ihcmqtt.gateway [-h] [-v #] [-c file]
   -c specifies a config file to read
 """
 
-def main(argv):
+def main():
     config = dict()
     log_level = logging.ERROR
 
     try:
-        opts, args = getopt.getopt(argv, "hv:c:",[])
+        opts, args = getopt.getopt(sys.argv[1:], "hv:c:",[])
     except:
         print("Error parsing command line arguments: {}".format(' '.join(argv)))
         sys.exit(2)
@@ -203,4 +203,4 @@ def main(argv):
     signal.signal(signal.SIGINT, lambda sig, frame: gw.close())
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main()
