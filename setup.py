@@ -14,7 +14,7 @@ setup(
     description="IHC-MQTT gateway",
     long_description=README,
     long_description_content_type="text/markdown",
-    url="https://github.com/jakobdalsgaard/ihcmqtt",
+    url="https://github.com/jakobdalsgaard/ihcmqtt-gateway",
     author="Jakob Dalsgaard",
     author_email="jakob@dalsgaard.net",
     license="MIT",
